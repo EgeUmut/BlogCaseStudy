@@ -12,23 +12,26 @@ namespace Application.Features.Users.Commands.Create;
 
 public class CreateUserCommand : IRequest<CreatedUserResponse>, ISecuredRequest
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    //public string FirstName { get; set; }
+    //public string LastName { get; set; }
+    public string UserName { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
 
     public CreateUserCommand()
     {
-        FirstName = string.Empty;
-        LastName = string.Empty;
+        //FirstName = string.Empty;
+        //LastName = string.Empty;
+        UserName = string.Empty;
         Email = string.Empty;
         Password = string.Empty;
     }
 
-    public CreateUserCommand(string firstName, string lastName, string email, string password)
+    public CreateUserCommand(string email, string password,string userName)
     {
-        FirstName = firstName;
-        LastName = lastName;
+        //FirstName = firstName;
+        //LastName = lastName;
+        UserName = userName;
         Email = email;
         Password = password;
     }

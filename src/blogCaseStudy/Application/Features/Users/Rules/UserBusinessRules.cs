@@ -41,7 +41,7 @@ public class UserBusinessRules : BaseBusinessRules
     public async Task UserPasswordShouldBeMatched(User user, string password)
     {
         if (!HashingHelper.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
-            await throwBusinessException(UsersMessages.PasswordDontMatch);
+            throw new BusinessException("Wrong Password");
     }
 
     public async Task UserEmailShouldNotExistsWhenInsert(string email)

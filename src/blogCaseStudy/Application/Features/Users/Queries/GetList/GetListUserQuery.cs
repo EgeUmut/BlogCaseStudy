@@ -10,23 +10,23 @@ using NArchitecture.Core.Persistence.Paging;
 
 namespace Application.Features.Users.Queries.GetList;
 
-public class GetListUserQuery : IRequest<GetListResponse<GetListUserListItemDto>>, ISecuredRequest
+public class GetListUserWithBlogsQuery : IRequest<GetListResponse<GetListUserListItemDto>>//, ISecuredRequest
 {
     public PageRequest PageRequest { get; set; }
 
     public string[] Roles => [UsersOperationClaims.Read];
 
-    public GetListUserQuery()
+    public GetListUserWithBlogsQuery()
     {
         PageRequest = new PageRequest { PageIndex = 0, PageSize = 10 };
     }
 
-    public GetListUserQuery(PageRequest pageRequest)
+    public GetListUserWithBlogsQuery(PageRequest pageRequest)
     {
         PageRequest = pageRequest;
     }
 
-    public class GetListUserQueryHandler : IRequestHandler<GetListUserQuery, GetListResponse<GetListUserListItemDto>>
+    public class GetListUserQueryHandler : IRequestHandler<GetListUserWithBlogsQuery, GetListResponse<GetListUserListItemDto>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -38,7 +38,7 @@ public class GetListUserQuery : IRequest<GetListResponse<GetListUserListItemDto>
         }
 
         public async Task<GetListResponse<GetListUserListItemDto>> Handle(
-            GetListUserQuery request,
+            GetListUserWithBlogsQuery request,
             CancellationToken cancellationToken
         )
         {
@@ -46,7 +46,8 @@ public class GetListUserQuery : IRequest<GetListResponse<GetListUserListItemDto>
                 index: request.PageRequest.PageIndex,
                 size: request.PageRequest.PageSize,
                 enableTracking: false,
-                cancellationToken: cancellationToken
+                cancellationToken: cancellationToken,
+                predicate:p=>p.Blogs.Count > 0
             );
 
             GetListResponse<GetListUserListItemDto> response = _mapper.Map<GetListResponse<GetListUserListItemDto>>(users);

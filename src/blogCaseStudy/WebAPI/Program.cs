@@ -86,6 +86,7 @@ WebApplication app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.ConfigureCustomExceptionMiddleware();
     app.UseSwagger();
     app.UseSwaggerUI(opt =>
     {

@@ -81,6 +81,16 @@ public class AuthBusinessRules : BaseBusinessRules
             await throwBusinessException(AuthMessages.UserMailAlreadyExists);
     }
 
+    public async Task UserNameShouldNotExists(string userName)
+    {
+        bool doesExists = await _userRepository.AnyAsync(predicate: u => u.UserName == userName, enableTracking: false);
+        if (doesExists)
+        {
+            throw new BusinessException("User Name Already Exists!");
+        }
+            
+    }
+
     public async Task UserPasswordShouldBeMatch(User user, string password)
     {
         if (!HashingHelper.VerifyPasswordHash(password, user!.PasswordHash, user.PasswordSalt))

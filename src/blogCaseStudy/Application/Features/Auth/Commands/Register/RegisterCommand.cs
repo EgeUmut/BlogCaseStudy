@@ -11,7 +11,7 @@ namespace Application.Features.Auth.Commands.Register;
 
 public class RegisterCommand : IRequest<RegisteredResponse>
 {
-    public UserForRegisterDto UserForRegisterDto { get; set; }
+    public RegisterDto UserForRegisterDto { get; set; }
     public string IpAddress { get; set; }
 
     public RegisterCommand()
@@ -20,7 +20,7 @@ public class RegisterCommand : IRequest<RegisteredResponse>
         IpAddress = string.Empty;
     }
 
-    public RegisterCommand(UserForRegisterDto userForRegisterDto, string ipAddress)
+    public RegisterCommand(RegisterDto userForRegisterDto, string ipAddress)
     {
         UserForRegisterDto = userForRegisterDto;
         IpAddress = ipAddress;
@@ -31,21 +31,25 @@ public class RegisterCommand : IRequest<RegisteredResponse>
         private readonly IUserRepository _userRepository;
         private readonly IAuthService _authService;
         private readonly AuthBusinessRules _authBusinessRules;
+        IUserOperationClaimRepository _userOperationClaimRepository;
 
         public RegisterCommandHandler(
             IUserRepository userRepository,
             IAuthService authService,
-            AuthBusinessRules authBusinessRules
+            AuthBusinessRules authBusinessRules,
+            IUserOperationClaimRepository userOperationClaimRepository
         )
         {
             _userRepository = userRepository;
             _authService = authService;
             _authBusinessRules = authBusinessRules;
+            _userOperationClaimRepository = userOperationClaimRepository;
         }
 
         public async Task<RegisteredResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
             await _authBusinessRules.UserEmailShouldBeNotExists(request.UserForRegisterDto.Email);
+            await _authBusinessRules.UserNameShouldNotExists(request.UserForRegisterDto.UserName);
 
             HashingHelper.CreatePasswordHash(
                 request.UserForRegisterDto.Password,
@@ -56,21 +60,35 @@ public class RegisterCommand : IRequest<RegisteredResponse>
                 new()
                 {
                     Email = request.UserForRegisterDto.Email,
+                    UserName = request.UserForRegisterDto.UserName,
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
                 };
-            User createdUser = await _userRepository.AddAsync(newUser);
+            try
+            {
+                User createdUser = await _userRepository.AddAsync(newUser);
 
-            AccessToken createdAccessToken = await _authService.CreateAccessToken(createdUser);
+                UserOperationClaim userOperationClaim1 = new() { UserId = createdUser.Id, OperationClaimId = 24 }; // UserRole yetkisi veriliyor
 
-            Domain.Entities.RefreshToken createdRefreshToken = await _authService.CreateRefreshToken(
-                createdUser,
-                request.IpAddress
-            );
-            Domain.Entities.RefreshToken addedRefreshToken = await _authService.AddRefreshToken(createdRefreshToken);
+                await _userOperationClaimRepository.AddAsync(userOperationClaim1);
 
-            RegisteredResponse registeredResponse = new() { AccessToken = createdAccessToken, RefreshToken = addedRefreshToken };
-            return registeredResponse;
+                AccessToken createdAccessToken = await _authService.CreateAccessToken(createdUser);
+
+                Domain.Entities.RefreshToken createdRefreshToken = await _authService.CreateRefreshToken(
+                    createdUser,
+                    request.IpAddress
+                );
+                Domain.Entities.RefreshToken addedRefreshToken = await _authService.AddRefreshToken(createdRefreshToken);
+
+                RegisteredResponse registeredResponse = new() { AccessToken = createdAccessToken, RefreshToken = addedRefreshToken };
+                return registeredResponse;
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
+
         }
     }
 }

@@ -13,29 +13,31 @@ namespace Application.Features.Users.Commands.Update;
 public class UpdateUserCommand : IRequest<UpdatedUserResponse>, ISecuredRequest
 {
     public Guid Id { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
+    public string UserName { get; set; }
+    public string? NewPassword { get; set; }
 
     public UpdateUserCommand()
     {
-        FirstName = string.Empty;
-        LastName = string.Empty;
+        //FirstName = string.Empty;
+        //LastName = string.Empty;
         Email = string.Empty;
         Password = string.Empty;
+        UserName = string.Empty;
     }
 
-    public UpdateUserCommand(Guid id, string firstName, string lastName, string email, string password)
+    public UpdateUserCommand(Guid id, string firstName, string lastName, string email, string password,string userName)
     {
         Id = id;
-        FirstName = firstName;
-        LastName = lastName;
+        UserName = userName;
+        //FirstName = firstName;
+        //LastName = lastName;
         Email = email;
         Password = password;
     }
 
-    public string[] Roles => new[] { Admin, Write, UsersOperationClaims.Update };
+    public string[] Roles => new[] { Admin, Write, UsersOperationClaims.Update, UsersOperationClaims.UserRole };
 
     public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UpdatedUserResponse>
     {
@@ -58,15 +60,21 @@ public class UpdateUserCommand : IRequest<UpdatedUserResponse>, ISecuredRequest
             );
             await _userBusinessRules.UserShouldBeExistsWhenSelected(user);
             await _userBusinessRules.UserEmailShouldNotExistsWhenUpdate(user!.Id, user.Email);
+            await _userBusinessRules.UserPasswordShouldBeMatched(user: user!, request.Password);
             user = _mapper.Map(request, user);
 
-            HashingHelper.CreatePasswordHash(
-                request.Password,
-                passwordHash: out byte[] passwordHash,
-                passwordSalt: out byte[] passwordSalt
-            );
-            user!.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            if (request.NewPassword != null && !string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                
+                HashingHelper.CreatePasswordHash(
+                    request.NewPassword,
+                    passwordHash: out byte[] passwordHash,
+                    passwordSalt: out byte[] passwordSalt
+                );
+                user!.PasswordHash = passwordHash;
+                user!.PasswordSalt = passwordSalt;
+            }
+
             await _userRepository.UpdateAsync(user);
 
             UpdatedUserResponse response = _mapper.Map<UpdatedUserResponse>(user);

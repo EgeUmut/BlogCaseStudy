@@ -32,7 +32,7 @@ public class UsersController : BaseController
     [HttpGet]
     public async Task<IActionResult> GetList([FromQuery] PageRequest pageRequest)
     {
-        GetListUserQuery getListUserQuery = new() { PageRequest = pageRequest };
+        GetListUserWithBlogsQuery getListUserQuery = new() { PageRequest = pageRequest };
         GetListResponse<GetListUserListItemDto> result = await Mediator.Send(getListUserQuery);
         return Ok(result);
     }

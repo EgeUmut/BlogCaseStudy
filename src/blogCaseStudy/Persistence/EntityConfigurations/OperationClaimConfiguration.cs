@@ -6,6 +6,8 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NArchitecture.Core.Security.Constants;
+using Application.Features.Blogs.Constants;
+using Application.Features.Comments.Constants;
 
 namespace Persistence.EntityConfigurations;
 
@@ -93,10 +95,39 @@ public class OperationClaimConfiguration : IEntityTypeConfiguration<OperationCla
                 new() { Id = ++lastId, Name = UsersOperationClaims.Create },
                 new() { Id = ++lastId, Name = UsersOperationClaims.Update },
                 new() { Id = ++lastId, Name = UsersOperationClaims.Delete },
+                new() { Id = ++lastId, Name = UsersOperationClaims.UserRole },
             ]
         );
         #endregion
 
+        
+        #region Blogs
+        featureOperationClaims.AddRange(
+            [
+                new() { Id = ++lastId, Name = BlogsOperationClaims.Admin },
+                new() { Id = ++lastId, Name = BlogsOperationClaims.Read },
+                new() { Id = ++lastId, Name = BlogsOperationClaims.Write },
+                new() { Id = ++lastId, Name = BlogsOperationClaims.Create },
+                new() { Id = ++lastId, Name = BlogsOperationClaims.Update },
+                new() { Id = ++lastId, Name = BlogsOperationClaims.Delete },
+            ]
+        );
+        #endregion
+        
+        
+        #region Comments
+        featureOperationClaims.AddRange(
+            [
+                new() { Id = ++lastId, Name = CommentsOperationClaims.Admin },
+                new() { Id = ++lastId, Name = CommentsOperationClaims.Read },
+                new() { Id = ++lastId, Name = CommentsOperationClaims.Write },
+                new() { Id = ++lastId, Name = CommentsOperationClaims.Create },
+                new() { Id = ++lastId, Name = CommentsOperationClaims.Update },
+                new() { Id = ++lastId, Name = CommentsOperationClaims.Delete },
+            ]
+        );
+        #endregion
+        
         return featureOperationClaims;
     }
 #pragma warning restore S1854 // Unused assignments should be removed
